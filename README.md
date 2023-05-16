@@ -1,6 +1,6 @@
 # LoadLibrary-Module
 A Simple Load Library Injector Module
-- Contains One Function
+- One Call To Inject
 - Takes Process Name As Input
 
 
