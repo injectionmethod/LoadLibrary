@@ -21,27 +21,34 @@ Module ProcessInjection
 
     Public Function InjectDLL(ByVal processName As String, ByVal dllPath As String) As Boolean
         Try
+            Console.WriteLine("Opening process...")
             Dim proc As Process = Process.GetProcessesByName(processName)(0)
             Dim hProcess As IntPtr = OpenProcess(PROCESS_CREATE_THREAD Or PROCESS_QUERY_INFORMATION Or PROCESS_VM_OPERATION Or PROCESS_VM_WRITE Or PROCESS_VM_READ, False, proc.Id)
 
+            Console.WriteLine("Allocating memory...")
             Dim dllBytes As Byte() = System.Text.Encoding.ASCII.GetBytes(dllPath)
             Dim dllPathAlloc As IntPtr = VirtualAllocEx(hProcess, IntPtr.Zero, CType(dllBytes.Length, IntPtr), MEM_COMMIT, PAGE_READWRITE)
             WriteProcessMemory(hProcess, dllPathAlloc, dllBytes, CType(dllBytes.Length, IntPtr), IntPtr.Zero)
 
+            Console.WriteLine("Getting address of LoadLibraryA...")
             Dim kernel32 As IntPtr = LoadLibrary("kernel32.dll")
             Dim loadLibraryAddr As IntPtr = GetProcAddress(kernel32, "LoadLibraryA")
 
+            Console.WriteLine("Creating remote thread...")
             Dim threadId As IntPtr
             Dim hThread As IntPtr = CreateRemoteThread(hProcess, IntPtr.Zero, 0, loadLibraryAddr, dllPathAlloc, 0, threadId)
 
+            Console.WriteLine("Waiting for thread to complete...")
             WaitForSingleObject(hThread, INFINITE)
 
+            Console.WriteLine("Freeing allocated memory...")
             VirtualFreeEx(hProcess, dllPathAlloc, CType(dllBytes.Length, IntPtr), &H8000)
             CloseHandle(hThread)
             CloseHandle(hProcess)
 
             Return True
         Catch ex As Exception
+            Console.WriteLine(ex.Message)
             Return False
         End Try
     End Function
