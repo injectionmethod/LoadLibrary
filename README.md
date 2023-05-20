@@ -4,4 +4,4 @@ A Simple Load Library Injector Module
 - Takes Process Name As Input
 
 
-ex: InjectDLL(PROCESSNAME, DLL_OF_CHOOSING)
+example: [InjectDLL(proc, dll)]
